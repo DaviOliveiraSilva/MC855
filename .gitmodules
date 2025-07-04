@@ -1,0 +1,4 @@
+[submodule "IoD_Sim"]
+	path = IoD_Sim
+	url = https://github.com/Ga-Fronio/IoD_Sim
+	ignore = dirty
