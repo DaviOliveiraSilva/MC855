@@ -3,31 +3,40 @@ import gymnasium as gym
 from gymnasium import spaces
 
 class DroneEnv(gym.Env):
-    def __init__(self, map_size=50):
+    def __init__(self, map_size=50, data=None):
         super().__init__()
         self.map_size = map_size
         self.coverage_map = np.zeros((map_size, map_size))
         self.observation_space = spaces.Box(low=0, high=1, shape=(8,), dtype=np.float32)
         self.action_space = spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
 
+        self.data = data
+        self.idx = 0  # índice do tempo
+
     def reset(self):
         self.coverage_map[:] = 0
+        self.idx = 0
         self.pos = np.random.randint(0, self.map_size, size=(2,))
         self.battery = 1.0
-        self.wind_speed = np.random.uniform(0, 1)  # Normalizado [0, 1]
         return self._get_state()
 
     def _get_state(self):
-        return np.array([
-            self.pos[0] / self.map_size,
-            self.pos[1] / self.map_size,
-            self.coverage_map[self.pos[0], self.pos[1]],
-            self.battery,
-            np.random.uniform(0, 1),  # temperatura (normalizado)
-            self.wind_speed,
-            np.random.uniform(0, 1),  # altitude
-            np.random.uniform(0, 1),  # direção do vento
-        ], dtype=np.float32)
+        if self.data is not None and self.idx < len(self.data):
+            row = self.data[self.idx]
+            state = np.array([
+                self.pos[0] / self.map_size,
+                self.pos[1] / self.map_size,
+                self.coverage_map[self.pos[0], self.pos[1]],
+                row['battery_voltage'] / 52000,  # normalizado
+                row['wind_speed'] / 20,           # normalizado
+                row['wind_angle'] / 360,
+                row['altitude'] / 500,            # normalizado
+                row['yaw'] / 3.1416               # normalizado (-pi, pi)
+            ], dtype=np.float32)
+            self.idx += 1
+            return state
+        else:
+            return np.random.uniform(0, 1, size=(8,)).astype(np.float32)
 
     def step(self, action):
         dx = int(action[0] * 2)
