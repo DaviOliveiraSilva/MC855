@@ -3,16 +3,22 @@
 from flwr.common import Context, ndarrays_to_parameters
 from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedAvg
-from uavfl.task import Net, get_weights
+from torchrl.modules import MLP, SafeModule, NormalParamWrapper
+from uavfl.task import get_weights
+from uavfl.agent import ValueNet, make_policy_module
 
+STATE_DIM = 7
+ACTION_DIM = 2
 
 def server_fn(context: Context):
     # Read from config
     num_rounds = context.run_config["num-server-rounds"]
     fraction_fit = context.run_config["fraction-fit"]
+    policy = make_policy_module(STATE_DIM, ACTION_DIM)
+    value = ValueNet(STATE_DIM)
 
     # Initialize model parameters
-    ndarrays = get_weights(Net())
+    ndarrays = get_weights(policy, value)
     parameters = ndarrays_to_parameters(ndarrays)
 
     # Define strategy

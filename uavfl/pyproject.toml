@@ -11,7 +11,9 @@ dependencies = [
     "flwr[simulation]>=1.19.0",
     "flwr-datasets[vision]>=0.5.0",
     "torch==2.5.1",
-    "torchvision==0.20.1",
+    "pandas>=2.2.0",
+    "torchrl>=0.8.0",
+    "gymnasium==1.2.0"
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -27,7 +29,7 @@ clientapp = "uavfl.client_app:app"
 [tool.flwr.app.config]
 num-server-rounds = 3
 fraction-fit = 0.5
-local-epochs = 1
+local-epochs = 2
 
 [tool.flwr.federations]
 default = "local-simulation"
